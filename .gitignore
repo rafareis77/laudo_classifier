@@ -1,0 +1,38 @@
+# --- Banco de dados (gerado automaticamente na primeira execução) ---
+*.db
+*.sqlite
+*.sqlite3
+
+# --- Modelo treinado (gerado automaticamente na primeira execução) ---
+models/*.pkl
+models/*.joblib
+
+# --- Streamlit ---
+.streamlit/cache/
+.streamlit/secrets.toml
+
+# --- Python ---
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# --- Ambientes virtuais ---
+venv/
+env/
+.env
+*.egg-info/
+dist/
+build/
+
+# --- IDEs ---
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# --- Sistema operacional ---
+.DS_Store
+Thumbs.db
+desktop.ini
