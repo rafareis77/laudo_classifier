@@ -24,7 +24,7 @@ laudo_classifier/
 │
 ├── modules/                  # Pacote Python com a lógica modularizada
 │   ├── __init__.py           # Expõe as funções públicas do pacote
-│   ├── seed_data.py          # Gerador de 540 laudos sintéticos para treino
+│   ├── seed_data.py          # Gerador de 620 laudos sintéticos para treino
 │   ├── database.py           # Conexão SQLite, init, histórico e consultas
 │   ├── model.py              # Treino, persistência e inferência (TF-IDF + SVM)
 │   ├── pdf_reader.py         # Extração de texto e parsing de campos do PDF
@@ -33,7 +33,12 @@ laudo_classifier/
 │   └── theme.py              # CSS customizado — tema médico profissional
 │
 ├── models/
-│   └── classifier.pkl        # Modelo treinado (gerado automaticamente)
+│   └── .gitkeep              # Pasta mantida no repo — classifier.pkl gerado automaticamente
+│
+├── laudos_teste/             # PDFs de exemplo para testar o app
+│   ├── laudo_teste_01_rm_coluna_alterado.pdf
+│   ├── laudo_teste_02_tc_abdomen_urgente.pdf
+│   └── laudo_teste_03_rx_coluna_cervical_normal.pdf
 │
 ├── laudos.db                 # Banco SQLite (gerado automaticamente)
 ├── requirements.txt          # Dependências do projeto
@@ -47,9 +52,9 @@ laudo_classifier/
 | Módulo | Responsabilidade |
 |---|---|
 | `app.py` | Orquestrador — configura página, inicializa recursos, renderiza abas |
-| `seed_data.py` | Gera 540 laudos sintéticos realistas com achados, conclusões e condutas |
+| `seed_data.py` | Gera 620 laudos sintéticos com distribuição desbalanceada realista |
 | `database.py` | Cria tabelas SQLite, popula dados de treino, salva e consulta histórico |
-| `model.py` | Pipeline TF-IDF + LinearSVC, treino com CV, persistência e predição |
+| `model.py` | Pré-processamento de texto + Pipeline TF-IDF + LinearSVC + CV |
 | `pdf_reader.py` | Extrai texto de PDFs digitais e faz parsing dos campos estruturados |
 | `analyzer.py` | Detecta status clínico por palavras-chave e sugere condutas por tipo |
 | `sidebar.py` | Renderiza histórico de laudos e gráfico de pizza por tipo na sidebar |
@@ -63,15 +68,30 @@ laudo_classifier/
 |---|---|
 | **Algoritmo** | LinearSVC com calibração de probabilidade (`CalibratedClassifierCV`) |
 | **Vetorização** | TF-IDF com n-gramas (1,2), 15.000 features, sublinear TF |
-| **Dados de treino** | 540 laudos sintéticos — 90 por classe |
+| **Pré-processamento** | Remoção de campos administrativos, normalização de acentos e minúsculas |
+| **Dados de treino** | 620 laudos sintéticos com distribuição desbalanceada |
+| **Desbalanceamento** | Tratado com `class_weight='balanced'` no LinearSVC |
 | **Validação** | Holdout 80/20 + Validação cruzada estratificada 5-fold |
 | **Saída** | Tipo de exame + probabilidade de confiança por classe |
+
+### Distribuição dos dados de treino
+
+| Tipo de Exame | Registros | Representatividade |
+|---|---|---|
+| Raio-X de Tórax | 160 | Exame mais solicitado na rotina |
+| Ultrassonografia | 140 | Segundo mais comum — ambulatorial |
+| Tomografia de Abdômen | 110 | Frequente em urgência e eletivo |
+| Radiografia de Coluna | 90 | Ortopedia e rotina |
+| Ressonância Magnética | 70 | Eletivo, menor volume |
+| Tomografia de Crânio | 50 | Urgência, menor volume relativo |
+| **Total** | **620** | |
 
 ### Por que TF-IDF + LinearSVC?
 
 - Excelente desempenho com texto médico técnico e curto
 - Treinamento rápido mesmo com poucos exemplos
 - `CalibratedClassifierCV` converte os scores em probabilidades reais
+- `class_weight='balanced'` compensa o desbalanceamento entre classes
 - Totalmente offline — sem necessidade de API ou GPU
 
 ---
@@ -82,6 +102,8 @@ laudo_classifier/
 Médico faz upload de PDF(s)
           ↓
 Extração do texto (pdfplumber)
+          ↓
+Pré-processamento (remove campos administrativos, normaliza texto)
           ↓
 Classificação do tipo de exame (TF-IDF + SVM)
           ↓
@@ -136,7 +158,19 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
-> Na primeira execução o banco SQLite é criado, os 540 laudos são inseridos e o modelo é treinado automaticamente. Isso leva cerca de 30 segundos.
+> Na primeira execução o banco SQLite é criado, os 620 laudos são inseridos e o modelo é treinado automaticamente. Isso leva cerca de 30 segundos.
+
+---
+
+## 🧪 Laudos de Teste
+
+A pasta `laudos_teste/` contém 3 PDFs prontos para testar o app:
+
+| Arquivo | Exame | Status Esperado |
+|---|---|---|
+| `laudo_teste_01_rm_coluna_alterado.pdf` | Ressonância Magnética | 🟡 Alterado |
+| `laudo_teste_02_tc_abdomen_urgente.pdf` | Tomografia de Abdômen | 🔴 Urgente |
+| `laudo_teste_03_rx_coluna_cervical_normal.pdf` | Radiografia de Coluna | 🟢 Normal |
 
 ---
 
