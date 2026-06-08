@@ -167,9 +167,3 @@ conda remove --name laudoclf --all
 
 > Este sistema é uma **ferramenta de apoio à decisão clínica** e **não substitui o julgamento médico**.  
 > As condutas sugeridas são baseadas em regras heurísticas e devem sempre ser avaliadas pelo profissional de saúde responsável.
-
----
-
-## 📬 Suporte
-
-Dúvidas ou sugestões? Entre em contato com a equipe de desenvolvimento.
